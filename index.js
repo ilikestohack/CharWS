@@ -5,7 +5,8 @@ let callVersions = {
     client_auth: '1.0.0',
     client_intents: '1.0.0',
     client_intent_send: '1.0.0',
-    client_keepalive: '1.0.0'
+    client_keepalive: '1.0.0',
+    client_submessage: '1.0.0'
 };
 let retriesBeforeFatal = 10;
 let retryCounts = {};
@@ -14,7 +15,6 @@ let wsURLGlobal;
 let wsClientGlobal;
 let wsStartedAppData;
 let wsAPI;
-let authData;
 let keepalive;
 let keepaliveInterval;
 
@@ -216,6 +216,7 @@ async function client_auth(wsAPI, appData, loginData) {
  * This is used manually when authentication hasnt happened or when an error occurs and a retry is needed.
  * @param wsAPI - Global wsAPI
  * @param appData - Global appData object
+ * @param intents - Intents to send to server
  */
 async function client_intents(wsAPI, appData, intents) {
     if (!intents) intents = appData.config.intents;
@@ -242,6 +243,32 @@ async function client_intents(wsAPI, appData, intents) {
                     });
                 resolve();
             }
+        })
+    });
+}
+
+/**
+ * Send a submessage
+ * This is used to send specific calls for server side application use
+ * @param wsAPI - Global wsAPI
+ * @param appData - Global appData object
+ * @param data - Submessage data to send to server
+ */
+async function client_submessage(wsAPI, appData, data) {
+    return new Promise((resolve, reject) => {
+        let call_id = getCallID();
+        wsAPI.send(
+            JSON.stringify({
+                type: 'client_submessage',
+                version: callVersions.client_submessage,
+                call_id,
+                authData,
+                data
+            })
+        );
+        waitFor(incomingMessages, call_id, 500, 'incomingMessages').then((dataResp) => {
+            if (checkError(wsAPI, appData, 'client_submessage', dataResp, false, client_submessage, data)) reject();
+            else resolve(dataResp);
         })
     });
 }
@@ -329,7 +356,7 @@ async function run(wsClient, wsURL, data) {
 }
 
 // Exports
-let _cws = { run, getClient, client_auth, client_intents, client_intent_send, client_intent_send_create };
+let _cws = { run, getClient, client_auth, client_intents, client_intent_send, client_intent_send_create, client_submessage };
 try {
     if (window) window.charWS = _cws;
 } catch {
