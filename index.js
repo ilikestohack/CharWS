@@ -1,4 +1,4 @@
-/* global Promise, alert, window */
+/* global alert, window, authData */
 // This is the main file for all use cases! Use the other two files to execute
 let callVersions = {
     client_hello: '1.0.0',
@@ -25,7 +25,6 @@ function getCallID() {
 
 // Wait for functions
 async function sleep(time) {
-    // eslint-disable-next-line no-undef
     return new Promise((resolve) => {
         setTimeout(resolve, time);
     });
@@ -200,6 +199,7 @@ async function client_auth(wsAPI, appData, loginData) {
         waitFor(incomingMessages, callID, 500, 'incomingMessages').then((dataResp) => {
             if (checkError(wsAPI, appData, 'client_auth', dataResp, false, client_auth, loginData)) reject();
             else {
+                // eslint-disable-next-line no-global-assign
                 authData = {
                     authEmail: dataResp.email,
                     authToken: dataResp.token,
