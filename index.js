@@ -52,8 +52,10 @@ function checkError(wsAPI, appData, callType, data, callback, retry, retryData) 
     if (data.type === 'error') {
         // Error Messaging
         if (appData.errorCallback) appData.errorCallback(data);
-        else if (alert) alert(data.error);
-        else console.error(data.error);
+        else try{
+            if(alert) alert(data.error);
+            else throw "No Alert";
+        }catch{ console.error(data.error); }
 
         // Error Handling
         if (data.errorHandling === 'retry')
